@@ -1,0 +1,1618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Week 11 · Transformations & Tessellations</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* ── RESET & VARS ─────────────────────────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#1B3A6B;--teal:#1D7874;--gold:#E8A020;--orange:#E05C1A;
+  --red:#C0392B;--green:#1A6B3C;--white:#FFFFFF;--off:#F4F7FB;
+  --acc:#2563EB;         /* blue — maths week */
+  --acc2:#1D4ED8;
+  --acc-light:#DBEAFE;
+  --grey:#4A5568;--lgrey:#E2E8F0;--cream:#FFFBF0;
+  --sidebar:260px;
+  --slide-h:100vh;
+}
+
+body{
+  font-family:'DM Sans',sans-serif;
+  background:#0F172A;
+  color:#1e293b;
+  overflow:hidden;
+  height:100vh;
+  display:flex;
+}
+
+/* ── SIDEBAR ──────────────────────────────────────────────────────────────── */
+#sidebar{
+  width:var(--sidebar);
+  min-width:var(--sidebar);
+  background:#0F172A;
+  border-right:1px solid #1e3a5f;
+  display:flex;
+  flex-direction:column;
+  height:100vh;
+  overflow:hidden;
+  transition:width .3s ease,min-width .3s ease;
+  z-index:100;
+}
+#sidebar.collapsed{width:0;min-width:0;overflow:hidden;}
+#sidebar-header{
+  padding:16px 14px 12px;
+  border-bottom:1px solid #1e3a5f;
+  flex-shrink:0;
+}
+#sidebar-header h2{
+  font-family:'DM Serif Display',serif;
+  font-size:13px;color:#94a3b8;letter-spacing:.06em;text-transform:uppercase;
+  margin-bottom:4px;
+}
+#sidebar-header p{font-size:11px;color:#475569;}
+
+#slide-list{
+  flex:1;overflow-y:auto;padding:8px 0;
+}
+#slide-list::-webkit-scrollbar{width:4px;}
+#slide-list::-webkit-scrollbar-track{background:transparent;}
+#slide-list::-webkit-scrollbar-thumb{background:#334155;border-radius:2px;}
+
+.slide-thumb{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 14px;cursor:pointer;
+  transition:background .15s;
+  border-left:3px solid transparent;
+}
+.slide-thumb:hover{background:#1e293b;}
+.slide-thumb.active{background:#1e3a5f;border-left-color:var(--acc);}
+.slide-thumb .num{
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;color:#475569;width:22px;flex-shrink:0;
+}
+.slide-thumb.active .num{color:var(--acc);}
+.slide-thumb .label{font-size:11.5px;color:#94a3b8;line-height:1.3;}
+.slide-thumb.active .label{color:#e2e8f0;}
+.slide-thumb .tag{
+  font-size:9px;padding:2px 5px;border-radius:3px;margin-left:auto;flex-shrink:0;
+  font-weight:600;letter-spacing:.04em;
+}
+.tag-s1{background:#1e3a5f;color:#60a5fa;}
+.tag-s2{background:#1a3a2e;color:#34d399;}
+.tag-s3{background:#3b1f1f;color:#f87171;}
+.tag-quiz{background:#3b2a00;color:#fbbf24;}
+.tag-ws{background:#2d1b69;color:#a78bfa;}
+
+/* Session dividers */
+.session-divider{
+  padding:10px 14px 4px;font-size:10px;font-weight:700;
+  letter-spacing:.08em;text-transform:uppercase;color:#334155;
+}
+
+/* Teacher toggle */
+#teacher-bar{
+  padding:10px 14px;border-top:1px solid #1e3a5f;flex-shrink:0;
+}
+#teacher-toggle{
+  width:100%;padding:8px 12px;border-radius:6px;border:none;cursor:pointer;
+  font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;
+  background:#1e3a5f;color:#94a3b8;transition:all .2s;
+}
+#teacher-toggle.active{background:#7c3aed;color:white;}
+
+/* ── MAIN STAGE ───────────────────────────────────────────────────────────── */
+#stage{
+  flex:1;display:flex;flex-direction:column;overflow:hidden;
+  background:#0F172A;
+}
+
+/* Top bar */
+#topbar{
+  display:flex;align-items:center;gap:12px;
+  padding:8px 16px;background:#0F172A;
+  border-bottom:1px solid #1e3a5f;flex-shrink:0;
+  height:48px;
+}
+#toggle-sidebar{
+  background:none;border:none;cursor:pointer;color:#475569;
+  font-size:18px;padding:4px 8px;border-radius:4px;
+  transition:color .2s;
+}
+#toggle-sidebar:hover{color:#94a3b8;}
+#slide-counter{font-family:'JetBrains Mono',monospace;font-size:12px;color:#475569;}
+#slide-title-bar{flex:1;font-size:13px;color:#94a3b8;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.teacher-badge{
+  display:none;font-size:11px;font-weight:700;
+  background:#7c3aed;color:white;padding:3px 8px;border-radius:4px;
+}
+.teacher-mode .teacher-badge{display:block;}
+#nav-prev,#nav-next{
+  background:none;border:1px solid #1e3a5f;border-radius:6px;
+  color:#475569;font-size:15px;cursor:pointer;
+  padding:5px 12px;transition:all .15s;
+}
+#nav-prev:hover,#nav-next:hover{background:#1e293b;color:#e2e8f0;}
+#nav-prev:disabled,#nav-next:disabled{opacity:.3;cursor:default;}
+
+/* Slide viewport */
+#slide-viewport{
+  flex:1;display:flex;align-items:center;justify-content:center;
+  padding:24px;overflow:hidden;
+}
+
+/* Individual slide */
+.slide{
+  display:none;width:100%;max-width:1100px;
+  background:var(--off);border-radius:16px;
+  box-shadow:0 24px 80px rgba(0,0,0,.5);
+  overflow:hidden;
+  animation:slideIn .25s ease;
+  height:calc(var(--slide-h) - 48px - 48px);
+  max-height:640px;
+  flex-direction:column;
+}
+.slide.active{display:flex;}
+@keyframes slideIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+
+/* Slide top bar */
+.s-bar{
+  height:64px;flex-shrink:0;display:flex;align-items:center;
+  padding:0 28px;gap:16px;
+  background:var(--acc);
+}
+.s-bar.teal{background:var(--teal);}
+.s-bar.gold{background:var(--gold);}
+.s-bar.red{background:var(--red);}
+.s-bar.navy{background:var(--navy);}
+.s-bar.purple{background:#7c3aed;}
+.s-bar.green{background:var(--green);}
+.s-bar.dark{background:#0F172A;}
+
+.s-title{
+  font-family:'DM Serif Display',serif;
+  font-size:22px;color:white;flex:1;
+  line-height:1.2;
+}
+.s-badge{
+  font-family:'JetBrains Mono',monospace;
+  font-size:12px;font-weight:700;
+  background:rgba(255,255,255,.2);
+  color:white;padding:4px 12px;border-radius:20px;
+  white-space:nowrap;flex-shrink:0;
+}
+.s-badge.gold-badge{background:var(--gold);color:var(--navy);}
+
+/* Slide body */
+.s-body{flex:1;overflow-y:auto;padding:28px;}
+.s-body::-webkit-scrollbar{width:4px;}
+.s-body::-webkit-scrollbar-track{background:transparent;}
+.s-body::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:2px;}
+
+/* ── TYPOGRAPHY ───────────────────────────────────────────────────────────── */
+.h1{font-family:'DM Serif Display',serif;font-size:28px;color:var(--navy);margin-bottom:8px;}
+.h2{font-size:15px;font-weight:700;color:var(--navy);margin-bottom:6px;}
+.body{font-size:14px;color:var(--grey);line-height:1.6;}
+.mono{font-family:'JetBrains Mono',monospace;}
+
+/* ── WEEK TITLE SLIDE ────────────────────────────────────────────────────────*/
+.week-title-slide .s-body{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;gap:16px;
+  background:linear-gradient(135deg,#EFF6FF 0%,#DBEAFE 100%);
+}
+.week-num{
+  font-family:'DM Serif Display',serif;
+  font-size:72px;color:var(--acc);opacity:.15;
+  position:absolute;top:80px;right:40px;
+  line-height:1;
+}
+.week-theme{
+  font-family:'DM Serif Display',serif;
+  font-size:36px;color:var(--navy);
+  line-height:1.2;max-width:700px;
+}
+.week-sub{font-size:14px;color:var(--grey);max-width:600px;line-height:1.6;}
+.word-pills{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:8px;}
+.pill{
+  font-family:'JetBrains Mono',monospace;
+  font-size:12px;font-weight:700;
+  background:white;color:var(--acc);
+  border:2px solid var(--acc-light);
+  padding:5px 12px;border-radius:20px;
+}
+.acara-tag{
+  font-size:11px;color:#94a3b8;
+  border:1px solid #e2e8f0;padding:4px 12px;border-radius:20px;
+  font-family:'JetBrains Mono',monospace;
+}
+
+/* ── SESSION TITLE SLIDE ─────────────────────────────────────────────────────*/
+.li-box{
+  background:white;border:2px solid var(--acc-light);
+  border-radius:10px;padding:16px 20px;margin-bottom:16px;
+}
+.li-label{font-size:11px;font-weight:700;color:var(--acc);letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px;}
+.li-text{font-size:15px;font-weight:600;color:var(--navy);line-height:1.5;}
+.sc-list{display:flex;flex-direction:column;gap:8px;}
+.sc-item{
+  display:flex;align-items:flex-start;gap:12px;
+  background:white;border-radius:8px;padding:12px 16px;
+  border:1px solid var(--lgrey);
+}
+.sc-check{
+  width:22px;height:22px;border-radius:6px;
+  background:var(--teal);color:white;
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;flex-shrink:0;margin-top:1px;
+}
+.sc-text{font-size:14px;color:var(--grey);line-height:1.5;}
+
+/* ── HOOK SLIDE ──────────────────────────────────────────────────────────────*/
+.hook-card{
+  background:white;border-radius:12px;
+  border-left:6px solid var(--gold);
+  padding:24px 28px;
+  font-size:18px;font-weight:600;color:var(--navy);
+  line-height:1.6;
+  box-shadow:0 4px 20px rgba(0,0,0,.06);
+  flex:1;display:flex;align-items:center;
+}
+.timer-chip{
+  display:inline-flex;align-items:center;gap:6px;
+  background:var(--gold);color:var(--navy);
+  font-weight:700;font-size:13px;
+  padding:6px 14px;border-radius:20px;
+  margin-bottom:16px;
+}
+
+/* ── ROOT INVESTIGATION ──────────────────────────────────────────────────────*/
+.root-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;}
+.root-card{border-radius:10px;overflow:hidden;}
+.root-header{padding:12px 14px;text-align:center;}
+.root-header .root-word{font-family:'DM Serif Display',serif;font-size:22px;color:white;}
+.root-header .root-mean{font-size:11px;color:rgba(255,255,255,.75);margin-top:2px;}
+.root-examples{padding:8px;}
+.root-ex{
+  text-align:center;padding:5px 8px;margin:3px 0;
+  border-radius:6px;font-size:12px;font-weight:600;
+  background:rgba(255,255,255,.9);
+}
+
+/* ── WORD REVEAL ─────────────────────────────────────────────────────────────*/
+.word-reveal-wrap{
+  display:flex;flex-direction:column;align-items:center;gap:16px;
+  flex:1;justify-content:center;
+}
+.progress-dots{display:flex;gap:6px;margin-bottom:4px;}
+.dot{
+  width:28px;height:10px;border-radius:5px;
+  background:#e2e8f0;transition:background .3s;
+  font-size:9px;display:flex;align-items:center;justify-content:center;
+  color:#94a3b8;font-family:'JetBrains Mono',monospace;
+}
+.dot.done{background:var(--acc);}
+.dot.current{background:var(--gold);}
+
+.word-input-row{display:flex;gap:12px;align-items:center;width:100%;max-width:700px;}
+.word-input{
+  flex:1;font-family:'DM Serif Display',serif;font-size:32px;
+  border:3px solid var(--lgrey);border-radius:10px;
+  padding:14px 20px;color:var(--navy);
+  outline:none;transition:border .2s;
+  background:white;
+}
+.word-input:focus{border-color:var(--acc);}
+.word-input.correct{border-color:var(--green);background:#f0fdf4;}
+.word-input.incorrect{border-color:var(--red);background:#fef2f2;}
+
+.reveal-btn{
+  padding:14px 24px;border-radius:10px;border:none;cursor:pointer;
+  font-family:'DM Sans',sans-serif;font-weight:700;font-size:14px;
+  background:var(--acc);color:white;
+  transition:all .2s;white-space:nowrap;
+}
+.reveal-btn:hover{background:var(--acc2);transform:translateY(-1px);}
+.reveal-btn.revealed{background:#e2e8f0;color:#94a3b8;cursor:default;transform:none;}
+
+.word-display{
+  font-family:'DM Serif Display',serif;font-size:64px;
+  display:none;animation:popIn .3s cubic-bezier(.34,1.56,.64,1);
+  text-align:center;
+}
+@keyframes popIn{from{transform:scale(.7);opacity:0;}to{transform:scale(1);opacity:1;}}
+
+.root-pill{
+  display:flex;gap:8px;align-items:center;
+  background:white;border:2px solid var(--acc-light);
+  border-radius:8px;padding:10px 18px;
+  font-size:14px;color:var(--grey);
+}
+.root-pill strong{color:var(--red);font-family:'JetBrains Mono',monospace;}
+
+.hold-prompt{
+  text-align:center;font-size:13px;color:#94a3b8;font-style:italic;
+  padding:8px 16px;background:#1B3A6B0A;border-radius:6px;
+}
+
+/* ── DEFINITION MATCH ────────────────────────────────────────────────────────*/
+.match-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.match-col-header{
+  font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--acc);padding:0 0 8px;border-bottom:2px solid var(--acc-light);
+  margin-bottom:4px;
+}
+.match-words,.match-meanings{display:flex;flex-direction:column;gap:5px;}
+.match-word{
+  display:flex;align-items:center;gap:10px;
+  background:white;border:2px solid var(--lgrey);
+  border-radius:8px;padding:8px 12px;
+  cursor:grab;transition:all .15s;
+  font-weight:600;font-size:13px;color:var(--navy);
+  user-select:none;
+}
+.match-word:active{cursor:grabbing;box-shadow:0 8px 25px rgba(0,0,0,.15);transform:scale(1.02);}
+.match-word.dragging{opacity:.5;}
+.match-word .letter{
+  font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;
+  color:var(--acc);background:var(--acc-light);
+  padding:2px 6px;border-radius:4px;flex-shrink:0;
+}
+.match-meaning{
+  background:#f8fafc;border:2px dashed #cbd5e1;
+  border-radius:8px;padding:8px 12px;
+  font-size:12px;color:var(--grey);line-height:1.4;
+  min-height:42px;transition:all .2s;position:relative;
+}
+.match-meaning.drag-over{border-color:var(--acc);background:var(--acc-light);}
+.match-meaning.matched{border-style:solid;border-color:var(--green);background:#f0fdf4;}
+.match-meaning .num{
+  font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;
+  color:var(--teal);position:absolute;top:4px;right:6px;
+}
+.match-meaning .placed-word{
+  font-weight:700;color:var(--green);
+  display:block;margin-top:2px;font-size:12px;
+}
+.match-actions{display:flex;gap:10px;margin-top:12px;}
+.match-check-btn{
+  padding:10px 20px;border-radius:8px;border:none;cursor:pointer;
+  font-family:'DM Sans',sans-serif;font-weight:700;font-size:13px;
+  background:var(--acc);color:white;transition:all .2s;
+}
+.match-check-btn:hover{background:var(--acc2);}
+.match-reset-btn{
+  padding:10px 20px;border-radius:8px;border:1px solid var(--lgrey);cursor:pointer;
+  font-family:'DM Sans',sans-serif;font-weight:600;font-size:13px;
+  background:white;color:var(--grey);transition:all .2s;
+}
+.match-reset-btn:hover{background:#f1f5f9;}
+.match-answer-panel{display:none;}
+.match-answer-panel.show{display:block;}
+.answer-grid{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+.answer-chip{
+  font-family:'JetBrains Mono',monospace;font-size:12px;
+  background:white;border:2px solid var(--teal);
+  border-radius:6px;padding:5px 12px;color:var(--navy);
+  font-weight:700;
+}
+
+/* ── SYLLABLE TAP ────────────────────────────────────────────────────────────*/
+.syl-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
+.syl-card{
+  background:white;border:2px solid var(--lgrey);
+  border-radius:8px;padding:12px 16px;
+  display:flex;align-items:center;gap:12px;
+  cursor:pointer;transition:all .2s;
+}
+.syl-card:hover{border-color:var(--acc);transform:translateY(-1px);}
+.syl-card.tapped{border-color:var(--acc);background:var(--acc-light);}
+.syl-word{font-size:16px;font-weight:700;color:var(--navy);flex:1;}
+.syl-split{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--teal);margin-top:2px;}
+.syl-count{
+  font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;
+  background:var(--acc-light);color:var(--acc);
+  padding:3px 8px;border-radius:12px;
+}
+
+/* ── MORPHEME PEEL ───────────────────────────────────────────────────────────*/
+.morph-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
+.morph-card{
+  background:white;border:2px solid var(--lgrey);border-radius:10px;overflow:hidden;
+}
+.morph-word{
+  padding:10px 14px;font-size:17px;font-weight:700;color:var(--navy);
+  background:#f8fafc;border-bottom:1px solid var(--lgrey);
+}
+.morph-parts{display:flex;gap:0;}
+.morph-part{
+  flex:1;padding:8px 10px;text-align:center;
+  border-right:1px solid rgba(255,255,255,.4);
+}
+.morph-part:last-child{border-right:none;}
+.morph-part-label{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.75);margin-bottom:2px;}
+.morph-part-text{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;color:white;}
+.morph-part-mean{font-size:10px;color:rgba(255,255,255,.7);margin-top:1px;}
+.try-list{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;}
+.try-word{
+  font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;
+  background:white;border:2px dashed var(--acc-light);
+  border-radius:6px;padding:6px 14px;color:var(--grey);
+}
+
+/* ── BROKEN WORD ─────────────────────────────────────────────────────────────*/
+.broken-list{display:flex;flex-direction:column;gap:8px;}
+.broken-item{
+  background:white;border:2px solid var(--lgrey);border-radius:8px;
+  padding:12px 16px;display:flex;align-items:center;gap:16px;
+}
+.broken-num{
+  font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;
+  color:var(--acc);width:24px;flex-shrink:0;
+}
+.broken-wrong{
+  font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--red);
+  text-decoration:line-through;text-decoration-color:var(--red);
+  flex:1;
+}
+.broken-arrow{font-size:16px;color:#cbd5e1;}
+.broken-answer{
+  font-family:'JetBrains Mono',monospace;font-size:14px;
+  font-weight:700;color:var(--green);flex:1;
+  display:none;
+}
+.broken-input{
+  font-family:'JetBrains Mono',monospace;font-size:13px;
+  border:2px solid var(--lgrey);border-radius:6px;
+  padding:5px 10px;flex:1;color:var(--navy);
+  transition:border .2s;
+}
+.broken-input:focus{outline:none;border-color:var(--acc);}
+.broken-input.correct{border-color:var(--green);background:#f0fdf4;}
+.broken-input.incorrect{border-color:var(--red);background:#fef2f2;}
+.broken-reveal-btn{
+  padding:8px 16px;border-radius:6px;border:none;cursor:pointer;
+  background:var(--acc);color:white;font-weight:600;font-size:12px;
+  font-family:'DM Sans',sans-serif;white-space:nowrap;
+}
+
+/* ── LCWC ────────────────────────────────────────────────────────────────────*/
+.lcwc-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;}
+.lcwc-step{border-radius:8px;overflow:hidden;}
+.lcwc-step-header{padding:8px 10px;text-align:center;}
+.lcwc-step-title{font-size:11px;font-weight:700;color:white;letter-spacing:.05em;}
+.lcwc-step-body{padding:8px 10px;font-size:12px;color:var(--grey);text-align:center;line-height:1.5;background:white;}
+.lcwc-words{display:flex;flex-direction:column;gap:8px;}
+.lcwc-word-row{
+  display:flex;align-items:center;gap:10px;
+  background:white;border:2px solid var(--lgrey);border-radius:8px;padding:10px 14px;
+}
+.lcwc-word-label{
+  font-family:'DM Serif Display',serif;font-size:20px;color:var(--navy);
+  flex:1;transition:all .3s;
+}
+.lcwc-word-label.hidden{filter:blur(8px);user-select:none;}
+.lcwc-toggle{
+  padding:6px 14px;border-radius:6px;border:none;cursor:pointer;
+  background:#f1f5f9;color:var(--grey);font-size:12px;font-weight:600;
+  font-family:'DM Sans',sans-serif;transition:all .2s;white-space:nowrap;
+}
+.lcwc-toggle:hover{background:var(--acc-light);color:var(--acc);}
+.lcwc-score{
+  display:flex;align-items:center;gap:8px;font-size:13px;color:var(--grey);
+  margin-top:4px;
+}
+.lcwc-score input{
+  width:44px;height:32px;border:2px solid var(--lgrey);border-radius:6px;
+  text-align:center;font-size:14px;font-weight:700;color:var(--navy);
+  font-family:'JetBrains Mono',monospace;
+}
+
+/* ── QUIZ ────────────────────────────────────────────────────────────────────*/
+.quiz-teacher-only{
+  background:#fdf4ff;border:2px dashed #a855f7;border-radius:10px;
+  padding:16px;display:none;
+}
+.teacher-mode .quiz-teacher-only{display:block;}
+.quiz-teacher-label{
+  font-size:11px;font-weight:700;color:#a855f7;letter-spacing:.06em;
+  text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:6px;
+}
+.quiz-item{
+  display:flex;align-items:flex-start;gap:12px;
+  padding:10px 14px;border-radius:8px;margin-bottom:6px;
+  background:white;border:1px solid #f3e8ff;
+}
+.quiz-qnum{
+  font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;
+  color:#a855f7;flex-shrink:0;width:20px;
+}
+.quiz-word-tag{
+  font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;
+  color:var(--red);background:#fef2f2;padding:2px 8px;border-radius:4px;
+  flex-shrink:0;white-space:nowrap;
+}
+.quiz-sentence{font-size:13px;color:var(--grey);line-height:1.5;}
+
+.quiz-student-view{flex:1;}
+.quiz-progress{margin-bottom:16px;}
+.quiz-q-display{
+  background:white;border:3px solid var(--acc-light);border-radius:12px;
+  padding:24px;text-align:center;min-height:120px;
+  display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;
+}
+.quiz-q-num{font-family:'JetBrains Mono',monospace;font-size:12px;color:#94a3b8;}
+.quiz-q-text{font-size:18px;color:var(--navy);font-weight:500;line-height:1.5;}
+.quiz-q-word{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:var(--red);}
+.quiz-nav-row{display:flex;gap:10px;margin-top:12px;}
+.quiz-nav-btn{
+  flex:1;padding:10px;border-radius:8px;border:none;cursor:pointer;
+  font-family:'DM Sans',sans-serif;font-weight:700;font-size:13px;
+  transition:all .2s;
+}
+.quiz-prev-btn{background:#f1f5f9;color:var(--grey);}
+.quiz-next-btn{background:var(--acc);color:white;}
+.quiz-prev-btn:hover{background:#e2e8f0;}
+.quiz-next-btn:hover{background:var(--acc2);}
+.quiz-answer-reveal{
+  display:none;margin-top:16px;
+}
+.quiz-answer-reveal.show{display:block;}
+.quiz-answer-grid{display:flex;flex-wrap:wrap;gap:8px;}
+.quiz-answer-chip{
+  font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;
+  background:white;border:2px solid var(--teal);border-radius:6px;
+  padding:5px 12px;color:var(--navy);
+}
+
+/* ── WORD STUDY ──────────────────────────────────────────────────────────────*/
+.ws-grid{
+  display:grid;grid-template-columns:1fr 1fr 1fr;
+  grid-template-rows:1fr 1fr;gap:10px;height:calc(100% - 70px);
+}
+.ws-centre{
+  grid-column:2;grid-row:1/3;display:flex;align-items:center;justify-content:center;
+  flex-direction:column;gap:8px;
+  background:white;border:3px solid var(--red);border-radius:12px;
+  text-align:center;
+}
+.ws-centre-word{
+  font-family:'DM Serif Display',serif;font-size:26px;color:var(--red);font-style:italic;
+}
+.ws-cell{
+  background:white;border:2px solid var(--acc-light);border-radius:10px;
+  padding:12px 14px;display:flex;flex-direction:column;gap:6px;
+}
+.ws-cell-title{
+  font-size:11px;font-weight:700;color:var(--acc);letter-spacing:.05em;
+  text-transform:uppercase;text-decoration:underline;text-underline-offset:2px;
+}
+.ws-cell-body{font-size:11.5px;color:var(--grey);line-height:1.5;flex:1;}
+.ws-cell-link{font-size:10px;color:#3b82f6;text-decoration:underline;word-break:break-all;}
+.ws-word-prompt{
+  background:white;border:2px solid var(--lgrey);border-radius:8px;
+  padding:8px 16px;margin-bottom:12px;text-align:center;
+}
+.ws-word-select{
+  border:2px solid var(--acc-light);border-radius:6px;
+  padding:6px 10px;font-size:13px;font-family:'DM Sans',sans-serif;
+  color:var(--navy);background:white;cursor:pointer;
+  font-weight:600;width:100%;
+}
+
+/* ── GENERAL ACTIVITY SLIDE ──────────────────────────────────────────────────*/
+.activity-card{
+  background:white;border-radius:10px;border:2px solid var(--lgrey);
+  padding:18px 20px;margin-bottom:10px;
+}
+.activity-title{font-size:14px;font-weight:700;color:var(--navy);margin-bottom:6px;}
+.activity-body{font-size:13.5px;color:var(--grey);line-height:1.6;}
+.starters-list{display:flex;flex-direction:column;gap:6px;margin-top:10px;}
+.starter{
+  background:#f8fafc;border-left:3px solid var(--acc);
+  border-radius:0 6px 6px 0;padding:8px 12px;
+  font-size:13px;color:var(--navy);font-style:italic;
+}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+
+/* ── FREEZE NOTICE ───────────────────────────────────────────────────────────*/
+.freeze-notice{
+  display:none;
+  background:#EA580C;border-radius:0 0 8px 8px;
+  padding:8px 20px;text-align:center;
+  font-size:12px;font-weight:700;color:white;flex-shrink:0;
+}
+.teacher-mode .freeze-notice{display:block;}
+
+/* ── MOBILE ARROWS ───────────────────────────────────────────────────────────*/
+#mobile-nav{
+  display:none;
+  position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
+  gap:12px;z-index:200;
+}
+@media(pointer:coarse){#mobile-nav{display:flex;}}
+.mob-btn{
+  width:52px;height:52px;border-radius:50%;border:none;cursor:pointer;
+  background:var(--acc);color:white;font-size:22px;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 20px rgba(0,0,0,.4);
+  transition:transform .15s;
+}
+.mob-btn:active{transform:scale(.9);}
+.mob-btn:disabled{opacity:.3;}
+
+</style>
+</head>
+<body>
+
+<!-- ── SIDEBAR ──────────────────────────────────────────────────────────────-->
+<nav id="sidebar">
+  <div id="sidebar-header">
+    <h2>Week 11</h2>
+    <p>Transformations &amp; Tessellations</p>
+  </div>
+  <div id="slide-list"></div>
+  <div id="teacher-bar">
+    <button id="teacher-toggle" onclick="toggleTeacher()">🔒 Teacher Mode: Off</button>
+  </div>
+</nav>
+
+<!-- ── MAIN STAGE ────────────────────────────────────────────────────────────-->
+<div id="stage">
+  <div id="topbar">
+    <button id="toggle-sidebar" onclick="toggleSidebar()" title="Toggle sidebar">☰</button>
+    <span id="slide-counter" class="mono">1 / 1</span>
+    <span id="slide-title-bar"></span>
+    <span class="teacher-badge">👁 Teacher Mode</span>
+    <button id="nav-prev" onclick="prevSlide()">◀</button>
+    <button id="nav-next" onclick="nextSlide()">▶</button>
+  </div>
+  <div id="slide-viewport">
+    <!-- slides injected here -->
+  </div>
+</div>
+
+<!-- Mobile nav -->
+<div id="mobile-nav">
+  <button class="mob-btn" id="mob-prev" onclick="prevSlide()">◀</button>
+  <button class="mob-btn" id="mob-next" onclick="nextSlide()">▶</button>
+</div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────────────────
+const WORDS = ["transformation","tessellation","translation","reflection","rotation",
+               "symmetry","congruent","perpendicular","polygon","geometric"];
+
+const ROOT_MAP = {
+  transformation: {root:"trans", hl:[0,5], mean:"Latin trans- (across) + form (shape)"},
+  tessellation:   {root:"tessell", hl:[0,6], mean:"Latin tessella (small tile / mosaic piece)"},
+  translation:    {root:"trans", hl:[0,5], mean:"Latin trans- (across) + latus (carried)"},
+  reflection:     {root:"re", hl:[0,2], mean:"Latin re- (back) + flect (bend)"},
+  rotation:       {root:"rot", hl:[0,3], mean:"Latin rota (wheel / turn)"},
+  symmetry:       {root:"sym", hl:[0,3], mean:"Greek syn- (together) + metron (measure)"},
+  congruent:      {root:"con", hl:[0,3], mean:"Latin congruere (to agree / meet together)"},
+  perpendicular:  {root:"per", hl:[0,3], mean:"Latin per- (through) + pendere (hang)"},
+  polygon:        {root:"poly", hl:[0,4], mean:"Greek poly- (many) + gon (angle)"},
+  geometric:      {root:"geo", hl:[0,3], mean:"Greek geo- (earth) + metron (measure)"},
+};
+
+const MEANINGS = [
+  "A change in position, size or orientation of a shape",
+  "A pattern of shapes that tile a surface with no gaps or overlaps",
+  "Sliding a shape to a new position without rotating or flipping it",
+  "Flipping a shape over a mirror line to create its mirror image",
+  "Turning a shape around a fixed point by a given angle",
+  "When one half of a shape is a mirror image of the other half",
+  "Having the exact same size and shape, even if in a different position",
+  "Two lines that meet at exactly 90 degrees (a right angle)",
+  "A closed 2D shape made entirely of straight sides",
+  "Relating to the properties of points, lines, shapes and solids",
+];
+
+const SYLLABLES = [
+  ["transformation",   "trans/for/ma/tion", 4],
+  ["tessellation",     "tes/sel/la/tion",   4],
+  ["translation",      "trans/la/tion",      3],
+  ["reflection",       "re/flec/tion",       3],
+  ["rotation",         "ro/ta/tion",         3],
+  ["symmetry",         "sym/me/try",         3],
+  ["congruent",        "con/gru/ent",        3],
+  ["perpendicular",    "per/pen/dic/u/lar",  5],
+  ["polygon",          "pol/y/gon",          3],
+  ["geometric",        "ge/o/met/ric",       4],
+];
+
+const MORPHEMES = [
+  {word:"transformation", parts:[{t:"trans-",r:"prefix",m:"across",c:"#2563EB"},{t:"form",r:"base",m:"shape",c:"#1D7874"},{t:"-ation",r:"suffix",m:"process of",c:"#C0392B"}]},
+  {word:"tessellation",   parts:[{t:"tessell",r:"root",m:"tile/mosaic",c:"#2563EB"},{t:"-ation",r:"suffix",m:"process of",c:"#C0392B"}]},
+  {word:"reflection",     parts:[{t:"re-",r:"prefix",m:"back",c:"#2563EB"},{t:"flect",r:"base",m:"bend",c:"#1D7874"},{t:"-ion",r:"suffix",m:"act of",c:"#C0392B"}]},
+  {word:"polygon",        parts:[{t:"poly-",r:"prefix",m:"many",c:"#2563EB"},{t:"-gon",r:"base",m:"angle",c:"#1D7874"}]},
+];
+
+const BROKEN = [
+  {wrong:"tran-sform-ation",  right:"trans/for/ma/tion"},
+  {wrong:"tes-sel-lation",    right:"tes/sel/la/tion"},
+  {wrong:"sym-me-tree",       right:"sym/me/try"},
+  {wrong:"per-pen-dic-ular",  right:"per/pen/dic/u/lar"},
+  {wrong:"ge-omet-ric",       right:"ge/o/met/ric"},
+];
+
+const QUIZ_DATA = [
+  ["transformation", "A change in position, size or orientation of a shape."],
+  ["tessellation",   "A pattern of shapes that tile a surface with no gaps or overlaps."],
+  ["translation",    "Sliding a shape to a new position without rotating or flipping it."],
+  ["reflection",     "Flipping a shape over a mirror line to create its mirror image."],
+  ["rotation",       "Turning a shape around a fixed point by a given angle."],
+  ["symmetry",       "When one half of a shape is a mirror image of the other half."],
+  ["congruent",      "Two triangles are this if they have the same size and shape."],
+  ["perpendicular",  "The two axes on a Cartesian plane are this — they meet at 90 degrees."],
+  ["polygon",        "A hexagon is a type of this — a closed 2D shape with straight sides."],
+  ["geometric",      "We used dynamic software to explore patterns made from combinations of transformations."],
+];
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function highlightRoot(word, hl){
+  const [start, end] = hl;
+  return `<span style="color:var(--navy)">${word.slice(0,start)}</span><span style="color:var(--red);text-decoration:underline;text-underline-offset:3px;font-weight:700">${word.slice(start,end)}</span><span style="color:var(--navy)">${word.slice(end)}</span>`;
+}
+
+// ── SLIDE DEFINITIONS ─────────────────────────────────────────────────────────
+const SLIDES = [];
+function S(title, tag, session, html, isFreezeSlide=false){
+  SLIDES.push({title, tag, session, html, isFreezeSlide});
+}
+
+// ─── WEEK TITLE ───────────────────────────────────────────────────────────────
+S("Week 11: Transformations & Tessellations","","",`
+<div class="s-bar">
+  <span class="s-title">Week 11 · Transformations &amp; Tessellations</span>
+  <span class="s-badge">Mathematics — Space</span>
+</div>
+<div class="s-body week-title-slide" style="position:relative">
+  <div class="week-num">11</div>
+  <div style="z-index:1;display:flex;flex-direction:column;align-items:center;gap:14px;width:100%">
+    <div class="week-theme">Transformations &amp; Tessellations</div>
+    <div class="week-sub">Latin and Greek roots in maths geometry vocabulary · AC9M6SP03 · AC9E6LY08 · AC9E6LY09</div>
+    <div class="word-pills">${WORDS.map(w=>`<div class="pill">${w}</div>`).join("")}</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:4px">
+      <span class="acara-tag">AC9M6SP03</span>
+      <span class="acara-tag">AC9E6LY08</span>
+      <span class="acara-tag">AC9E6LY09</span>
+      <span class="acara-tag">QCAA Yr6 Maths — Space</span>
+    </div>
+  </div>
+</div>`);
+
+// ─── SESSION 1 TITLE ─────────────────────────────────────────────────────────
+S("Session 1: Transformation & Tessellation Roots","s1","S1",`
+<div class="s-bar">
+  <span class="s-title">Session 1 · Transformation &amp; Tessellation Roots</span>
+  <span class="s-badge gold-badge">20 min</span>
+</div>
+<div class="s-body">
+  <div class="li-box">
+    <div class="li-label">🎯 Learning Intention</div>
+    <div class="li-text">I am learning to use Latin and Greek roots and morphemes to read and spell geometry and transformation vocabulary.</div>
+  </div>
+  <div class="h2" style="margin-bottom:10px">✅ Success Criteria</div>
+  <div class="sc-list">
+    <div class="sc-item"><div class="sc-check">✓</div><div class="sc-text">Identify the root in 6 geometry words and connect it to its mathematical meaning</div></div>
+    <div class="sc-item"><div class="sc-check">✓</div><div class="sc-text">Spell 5 focus words from memory using root knowledge</div></div>
+    <div class="sc-item"><div class="sc-check">✓</div><div class="sc-text">Match each word to its correct mathematical definition</div></div>
+  </div>
+</div>`);
+
+// ─── HOOK S1 ─────────────────────────────────────────────────────────────────
+S("Hook: Tessellation Image","s1","S1",`
+<div class="s-bar" style="background:var(--gold)">
+  <span class="s-title" style="color:var(--navy)">⚡ Hook — Session 1</span>
+  <span class="s-badge" style="background:var(--navy);color:var(--gold)">2 min</span>
+</div>
+<div class="s-body" style="display:flex;flex-direction:column;gap:14px">
+  <div class="timer-chip"><span>⏱</span> 2 minutes</div>
+  <div class="hook-card" style="flex-direction:column;align-items:flex-start;gap:10px">
+    <div>Look at the tessellation patterns around the room (or on screen).</div>
+    <div>On your whiteboard — write every <strong>focus word</strong> you can see or think of that describes what's happening in the pattern.</div>
+    <div style="font-size:14px;color:var(--teal);font-weight:600">How many words from our list can you spot?</div>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+    ${["🐟 Escher fish","🔷 Hexagonal tiles","🟥 Brick pattern"].map(t=>`
+      <div style="background:white;border:2px solid var(--lgrey);border-radius:8px;padding:14px;text-align:center;font-size:14px;font-weight:600;color:var(--grey)">${t}</div>
+    `).join("")}
+  </div>
+</div>`);
+
+// ─── ROOT INVESTIGATION ───────────────────────────────────────────────────────
+S("Root Investigation","s1","S1",`
+<div class="s-bar">
+  <span class="s-title">Root Investigation</span>
+  <span class="s-badge gold-badge">5 min</span>
+</div>
+<div class="s-body">
+  <p class="body" style="margin-bottom:14px;font-style:italic">How many maths words can you build from these roots? Write on your whiteboard. ✏️</p>
+  <div class="root-grid">
+    ${[
+      {r:"trans-",m:'"across"',c:"#2563EB",ex:["transformation","translation","transpose","transverse"]},
+      {r:"poly-",m:'"many"',c:"#7c3aed",ex:["polygon","polynomial","polyhedron","polyline"]},
+      {r:"geo-",m:'"earth / measure"',c:"#1D7874",ex:["geometric","geometry","geospatial","geography"]},
+      {r:"sym-",m:'"together"',c:"#1A6B3C",ex:["symmetry","symmetric","symbiosis","symbol"]},
+    ].map(({r,m,c,ex})=>`
+      <div class="root-card">
+        <div class="root-header" style="background:${c}">
+          <div class="root-word">${r}</div>
+          <div class="root-mean">${m}</div>
+        </div>
+        <div class="root-examples" style="background:${c}18">
+          ${ex.map(e=>`<div class="root-ex" style="color:${c}">${e}</div>`).join("")}
+        </div>
+      </div>
+    `).join("")}
+  </div>
+  <div style="background:var(--gold)18;border:2px solid var(--gold);border-radius:8px;padding:10px 14px;margin-top:8px;font-size:13px;font-weight:600;color:var(--navy)">
+    🏆 Challenge: find ONE more word for each root — write it on your whiteboard!
+  </div>
+</div>`);
+
+// ─── WORD REVEALS (10 × 2 slides each: hold + reveal) ────────────────────────
+WORDS.forEach((word, i) => {
+  const ri = ROOT_MAP[word];
+  // Hold slide
+  S(`Word ${i+1}: Spell it first!`,"s1","S1",`
+<div class="s-bar">
+  <span class="s-title">Root Reveal — Word ${i+1} of ${WORDS.length}</span>
+  <span class="s-badge gold-badge">5 min total</span>
+</div>
+<div class="s-body" style="display:flex;flex-direction:column;gap:14px">
+  <div class="progress-dots">
+    ${WORDS.map((_,j)=>`<div class="dot ${j<i?'done':j===i?'current':''}">${j+1}</div>`).join("")}
+  </div>
+  <div class="word-reveal-wrap" style="gap:12px">
+    <div class="root-pill">
+      <span>Root clue:</span>
+      <strong>${ri.root}</strong>
+      <span style="color:var(--grey)">= "${ri.mean.split(' ').slice(0,4).join(' ')}…"</span>
+    </div>
+    <div class="word-input-row">
+      <input class="word-input" id="wi-${i}" placeholder="Type your spelling here…" autocomplete="off" spellcheck="false"
+        oninput="checkWordInput(${i},'${word}')" style="font-size:28px">
+    </div>
+    <div class="hold-prompt">✏️  Write your spelling on your whiteboard, then tap Reveal when ready.</div>
+  </div>
+</div>
+<div class="freeze-notice">⏸ Students attempt spelling first — tap ▶ to reveal</div>`,true);
+
+  // Reveal slide
+  S(`Word ${i+1}: ${word}`,"s1","S1",`
+<div class="s-bar">
+  <span class="s-title">Root Reveal — Word ${i+1} of ${WORDS.length}</span>
+  <span class="s-badge gold-badge">5 min total</span>
+</div>
+<div class="s-body" style="display:flex;flex-direction:column;gap:14px">
+  <div class="progress-dots">
+    ${WORDS.map((_,j)=>`<div class="dot ${j<=i?'done':''}">${j+1}</div>`).join("")}
+  </div>
+  <div class="word-reveal-wrap">
+    <div class="word-display" id="wd-${i}" style="display:block">
+      ${highlightRoot(word, ri.hl)}
+    </div>
+    <div class="root-pill">
+      <span>Root:</span>
+      <strong>${ri.root}</strong>
+      <span style="color:var(--grey)">= "${ri.mean}"</span>
+    </div>
+    <div class="hold-prompt" style="background:#f0fdf4;color:var(--green)">✅ Check your spelling — how did you go?</div>
+  </div>
+</div>`);
+});
+
+// ─── DEFINITION MATCH ─────────────────────────────────────────────────────────
+// Shuffle meanings (fixed order so answer key works)
+const MATCH_ORDER = [3,4,5,6,7,8,9,0,1,2];
+const shuffledMeanings = MATCH_ORDER.map(i=>({meaning:MEANINGS[i],origIdx:i}));
+const LETTERS = "ABCDEFGHIJ".split("");
+
+S("Definition Match","s1","S1",`
+<div class="s-bar">
+  <span class="s-title">Definition Match — write the number next to each letter</span>
+  <span class="s-badge gold-badge">5 min</span>
+</div>
+<div class="s-body">
+  <p class="body" style="margin-bottom:12px;font-style:italic">Drag a word onto its matching meaning — or write the number next to each letter on your whiteboard.</p>
+  <div class="match-grid">
+    <div>
+      <div class="match-col-header">WORDS</div>
+      <div class="match-words" id="match-words">
+        ${WORDS.map((w,i)=>`
+          <div class="match-word" draggable="true" data-word="${w}" data-idx="${i}"
+            ondragstart="dragStart(event)" ontouchstart="touchStart(event,this)">
+            <span class="letter">${LETTERS[i]}</span>
+            <span>${w}</span>
+          </div>`).join("")}
+      </div>
+    </div>
+    <div>
+      <div class="match-col-header">MEANINGS</div>
+      <div class="match-meanings" id="match-meanings">
+        ${shuffledMeanings.map((item,i)=>`
+          <div class="match-meaning" data-orig="${item.origIdx}" data-slot="${i}"
+            ondragover="dragOver(event)" ondrop="dropWord(event)"
+            ontouchend="touchEnd(event,this)">
+            <span class="num">${i+1}</span>
+            <span class="meaning-text">${item.meaning}</span>
+            <span class="placed-word" id="placed-${i}"></span>
+          </div>`).join("")}
+      </div>
+    </div>
+  </div>
+  <div class="match-actions">
+    <button class="match-check-btn" onclick="checkMatch()">Check Answers ✓</button>
+    <button class="match-reset-btn" onclick="resetMatch()">Reset ↺</button>
+    <button class="match-check-btn" style="background:var(--teal)" onclick="toggleMatchAnswers()">Show Answers 👁</button>
+  </div>
+  <div class="match-answer-panel" id="match-answers">
+    <div class="h2" style="margin:10px 0 6px;color:var(--teal)">✅ Answer Key</div>
+    <div class="answer-grid">
+      ${WORDS.map((w,i)=>{const num=MATCH_ORDER.indexOf(i)+1;return`<div class="answer-chip">${LETTERS[i]} = ${num}</div>`}).join("")}
+    </div>
+  </div>
+</div>`);
+
+// ─── EXIT TICKET S1 ───────────────────────────────────────────────────────────
+S("Exit Ticket — Session 1","s1","S1",`
+<div class="s-bar" style="background:var(--navy)">
+  <span class="s-title">🎟 Exit Ticket — Session 1</span>
+  <span class="s-badge gold-badge">3 min</span>
+</div>
+<div class="s-body" style="display:flex;align-items:center;justify-content:center;height:100%">
+  <div style="background:var(--cream);border:3px solid var(--gold);border-radius:16px;padding:32px 40px;max-width:600px;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,.08)">
+    <div style="font-size:36px;margin-bottom:12px">🎟</div>
+    <div style="font-family:'DM Serif Display',serif;font-size:20px;color:var(--navy);line-height:1.6">
+      Choose <strong>2 words</strong> from the list.<br><br>
+      For each one write:<br>
+      <span style="color:var(--acc)">🔤 The root</span> &nbsp;·&nbsp;
+      <span style="color:var(--teal)">🌏 Language of origin</span> &nbsp;·&nbsp;
+      <span style="color:var(--red)">📐 What it means in maths</span>
+    </div>
+  </div>
+</div>`);
+
+// ─── SESSION 2 TITLE ─────────────────────────────────────────────────────────
+S("Session 2: Long Words, Smart Strategies","s2","S2",`
+<div class="s-bar" style="background:var(--teal)">
+  <span class="s-title">Session 2 · Long Words, Smart Strategies</span>
+  <span class="s-badge gold-badge">20 min</span>
+</div>
+<div class="s-body">
+  <div class="li-box" style="border-color:#99f6e4">
+    <div class="li-label" style="color:var(--teal)">🎯 Learning Intention</div>
+    <div class="li-text">I am learning to apply syllabification and morpheme strategies to spell complex maths transformation words.</div>
+  </div>
+  <div class="h2" style="margin-bottom:10px">✅ Success Criteria</div>
+  <div class="sc-list">
+    <div class="sc-item"><div class="sc-check" style="background:var(--teal)">✓</div><div class="sc-text">Break <em>transformation</em>, <em>tessellation</em> and <em>perpendicular</em> into syllables correctly</div></div>
+    <div class="sc-item"><div class="sc-check" style="background:var(--teal)">✓</div><div class="sc-text">Colour-code the prefix, base word and suffix in 4 focus words</div></div>
+    <div class="sc-item"><div class="sc-check" style="background:var(--teal)">✓</div><div class="sc-text">Identify and fix incorrectly split words using syllable knowledge</div></div>
+  </div>
+</div>`);
+
+// ─── HOOK S2 ─────────────────────────────────────────────────────────────────
+S("Hook: Syllable Challenge","s2","S2",`
+<div class="s-bar" style="background:var(--gold)">
+  <span class="s-title" style="color:var(--navy)">⚡ Hook — Session 2</span>
+  <span class="s-badge" style="background:var(--navy);color:var(--gold)">2 min</span>
+</div>
+<div class="s-body" style="display:flex;flex-direction:column;gap:16px">
+  <div class="timer-chip">⏱ 2 minutes</div>
+  <div style="background:white;border:3px solid var(--teal);border-radius:12px;padding:24px;text-align:center">
+    <div style="font-family:'DM Serif Display',serif;font-size:52px;color:var(--teal);margin-bottom:8px">tessellation</div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:20px;color:var(--navy);letter-spacing:.1em">tes · sel · la · tion</div>
+  </div>
+  <div class="hook-card" style="font-size:15px">
+    <div>
+      Tap each syllable on your desk as you say it — how many? <strong style="color:var(--teal)">4!</strong><br><br>
+      Now try: <span style="font-family:'DM Serif Display',serif;font-size:18px;color:var(--navy)">transformation</span> — tap it out. Write your count on your whiteboard.<br><br>
+      <span style="font-size:13px;color:var(--teal)">Why do we see a double <strong>l</strong> in tessellation? What does that tell a speller?</span>
+    </div>
+  </div>
+</div>`);
+
+// ─── SYLLABLE TAP ─────────────────────────────────────────────────────────────
+S("Syllable Tap","s2","S2",`
+<div class="s-bar" style="background:var(--teal)">
+  <span class="s-title">Syllable Tap — tap and say each split</span>
+  <span class="s-badge gold-badge">4 min</span>
+</div>
+<div class="s-body">
+  <p class="body" style="margin-bottom:12px;font-style:italic">Tap the syllables on your desk as you say each word. Click a card to mark it done. ✅</p>
+  <div class="syl-grid" id="syl-grid">
+    ${SYLLABLES.map(([word,split,count],i)=>`
+      <div class="syl-card" id="syl-${i}" onclick="tapSyl(${i})">
+        <div style="flex:1">
+          <div class="syl-word">${word}</div>
+          <div class="syl-split">${split}</div>
+        </div>
+        <div class="syl-count">${count}</div>
+      </div>`).join("")}
+  </div>
+</div>`);
+
+// ─── MORPHEME PEEL ────────────────────────────────────────────────────────────
+S("Morpheme Peel","s2","S2",`
+<div class="s-bar" style="background:var(--teal)">
+  <span class="s-title">Morpheme Peel — colour-code prefix · base · suffix</span>
+  <span class="s-badge gold-badge">7 min</span>
+</div>
+<div class="s-body">
+  <p class="body" style="margin-bottom:12px;font-style:italic">
+    🔵 prefix &nbsp; 🟢 base word &nbsp; 🔴 suffix/ending
+  </p>
+  <div class="morph-grid">
+    ${MORPHEMES.map(({word,parts})=>`
+      <div class="morph-card">
+        <div class="morph-word">${word}</div>
+        <div class="morph-parts">
+          ${parts.map(({t,r,m,c})=>`
+            <div class="morph-part" style="background:${c}">
+              <div class="morph-part-label">${r}</div>
+              <div class="morph-part-text">${t}</div>
+              <div class="morph-part-mean">${m}</div>
+            </div>`).join("")}
+        </div>
+      </div>`).join("")}
+  </div>
+  <div style="margin-top:12px">
+    <div class="h2" style="margin-bottom:6px;color:var(--teal)">✏️ Now try these yourself:</div>
+    <div class="try-list">
+      ${["translation","symmetry","congruent","geometric"].map(w=>`<div class="try-word">${w}</div>`).join("")}
+    </div>
+  </div>
+</div>`);
+
+// ─── BROKEN WORD REPAIR: question ────────────────────────────────────────────
+S("Broken Word Repair","s2","S2",`
+<div class="s-bar" style="background:var(--teal)">
+  <span class="s-title">Broken Word Repair — fix the incorrect splits</span>
+  <span class="s-badge gold-badge">5 min</span>
+</div>
+<div class="s-body">
+  <p class="body" style="margin-bottom:12px;font-style:italic">These words have been split in the WRONG place. Type the correct split on each line, then click Check. ✍️</p>
+  <div class="broken-list">
+    ${BROKEN.map(({wrong,right},i)=>`
+      <div class="broken-item">
+        <div class="broken-num">${i+1}.</div>
+        <div class="broken-wrong">${wrong}</div>
+        <div class="broken-arrow">→</div>
+        <input class="broken-input" id="br-inp-${i}" placeholder="type correct split…"
+          autocomplete="off" spellcheck="false" data-answer="${right}"
+          oninput="checkBroken(${i})">
+        <div class="broken-answer" id="br-ans-${i}" style="color:var(--green);font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700">${right}</div>
+      </div>`).join("")}
+  </div>
+  <div style="display:flex;gap:10px;margin-top:14px">
+    <button class="broken-reveal-btn" onclick="revealAllBroken()">Reveal All Answers</button>
+    <button class="broken-reveal-btn" style="background:#f1f5f9;color:var(--grey);border:1px solid var(--lgrey)" onclick="resetBroken()">Reset ↺</button>
+  </div>
+</div>
+<div class="freeze-notice">⏸ Students attempt on whiteboards first — tap Reveal All when ready</div>`,true);
+
+// ─── LCWC ────────────────────────────────────────────────────────────────────
+const LCWC_WORDS = ["transformation","tessellation","perpendicular","congruent","geometric"];
+S("Look · Cover · Write · Check","s2","S2",`
+<div class="s-bar" style="background:var(--teal)">
+  <span class="s-title">Look · Cover · Write · Check</span>
+  <span class="s-badge gold-badge">4 min</span>
+</div>
+<div class="s-body">
+  <div class="lcwc-steps">
+    ${[
+      {n:"1. LOOK",c:"#2563EB",d:"Read carefully.\nNotice every letter.\nSpot the tricky part."},
+      {n:"2. COVER",c:"#1D7874",d:"Cover the word.\nPicture it in your mind.\nSay it slowly."},
+      {n:"3. WRITE",c:"#7c3aed",d:"Write from memory.\nNo peeking!"},
+      {n:"4. CHECK",c:"#1A6B3C",d:"Uncover and check.\nCircle any errors.\nRepeat if wrong."},
+    ].map(({n,c,d})=>`
+      <div class="lcwc-step">
+        <div class="lcwc-step-header" style="background:${c}"><div class="lcwc-step-title">${n}</div></div>
+        <div class="lcwc-step-body">${d.replace(/\n/g,"<br>")}</div>
+      </div>`).join("")}
+  </div>
+  <div class="lcwc-words">
+    ${LCWC_WORDS.map((w,i)=>`
+      <div class="lcwc-word-row">
+        <div class="lcwc-word-label" id="lcwc-${i}">${w}</div>
+        <button class="lcwc-toggle" onclick="toggleLCWC(${i})" id="lcwc-btn-${i}">Hide word</button>
+        <div class="lcwc-score">
+          Round <input type="number" min="0" max="2" placeholder="0" style="width:40px"> / 2
+        </div>
+      </div>`).join("")}
+  </div>
+</div>`);
+
+// ─── SESSION 3 TITLE ─────────────────────────────────────────────────────────
+S("Session 3: Spelling in Context","s3","S3",`
+<div class="s-bar" style="background:var(--red)">
+  <span class="s-title">Session 3 · Maths Writing: Spelling in Context</span>
+  <span class="s-badge gold-badge">20 min</span>
+</div>
+<div class="s-body">
+  <div class="li-box" style="border-color:#fecaca">
+    <div class="li-label" style="color:var(--red)">🎯 Learning Intention</div>
+    <div class="li-text">I am learning to spell transformation and geometry vocabulary accurately in mathematical explanations and in a weekly dictation quiz.</div>
+  </div>
+  <div class="h2" style="margin-bottom:10px">✅ Success Criteria</div>
+  <div class="sc-list">
+    <div class="sc-item"><div class="sc-check" style="background:var(--red)">✓</div><div class="sc-text">Spell 8/10 focus words correctly in the dictation quiz</div></div>
+    <div class="sc-item"><div class="sc-check" style="background:var(--red)">✓</div><div class="sc-text">Use 4+ focus words accurately in a written maths explanation</div></div>
+    <div class="sc-item"><div class="sc-check" style="background:var(--red)">✓</div><div class="sc-text">Self-correct at least 1 spelling error after proofreading</div></div>
+  </div>
+</div>`);
+
+// ─── HOOK S3 ─────────────────────────────────────────────────────────────────
+S("Hook: 30-Second Memory Challenge","s3","S3",`
+<div class="s-bar" style="background:var(--gold)">
+  <span class="s-title" style="color:var(--navy)">⚡ Hook — Session 3</span>
+  <span class="s-badge" style="background:var(--navy);color:var(--gold)">2 min</span>
+</div>
+<div class="s-body" style="display:flex;flex-direction:column;gap:16px;align-items:center;justify-content:center;height:100%">
+  <div style="background:white;border:3px solid var(--navy);border-radius:16px;padding:32px 40px;text-align:center;max-width:600px;width:100%">
+    <div style="font-size:48px;margin-bottom:8px">⏱</div>
+    <div style="font-family:'DM Serif Display',serif;font-size:24px;color:var(--navy);margin-bottom:12px">30-Second Memory Challenge</div>
+    <div style="font-size:15px;color:var(--grey);line-height:1.7">
+      Without looking at any notes…<br>
+      Write as many of the <strong>10 focus words</strong> as you can remember!<br><br>
+      <strong style="color:var(--acc);font-size:18px">You have 30 seconds — GO! 🚀</strong>
+    </div>
+  </div>
+  <div style="font-size:13px;color:#94a3b8;font-style:italic">Count your words and compare with your partner.</div>
+</div>`);
+
+// ─── EXPLANATION PARAGRAPH ────────────────────────────────────────────────────
+S("Explanation Paragraph","s3","S3",`
+<div class="s-bar" style="background:var(--red)">
+  <span class="s-title">Explanation Paragraph</span>
+  <span class="s-badge gold-badge">6 min</span>
+</div>
+<div class="s-body">
+  <div class="activity-card">
+    <div class="activity-title">📝 Task</div>
+    <div class="activity-body">Write <strong>3–4 sentences</strong> explaining how to create a tessellation using combinations of transformations.<br>Must include <strong>4+ focus words</strong> — underline each one.</div>
+  </div>
+  <div class="h2" style="margin-bottom:8px">💬 Sentence starters:</div>
+  <div class="starters-list">
+    <div class="starter">A tessellation is…</div>
+    <div class="starter">To create one, you use combinations of… such as translation, reflection or…</div>
+    <div class="starter">The shapes must be congruent because…</div>
+    <div class="starter">When you apply a rotation of… degrees, the polygon…</div>
+  </div>
+  <div style="margin-top:10px;padding:10px 14px;background:var(--acc-light);border-radius:8px;font-size:12px;color:var(--acc);font-weight:600">
+    Focus words: ${WORDS.join(" · ")}
+  </div>
+</div>`);
+
+// ─── PROOFREAD SWAP ───────────────────────────────────────────────────────────
+S("Proofread Swap","s3","S3",`
+<div class="s-bar" style="background:var(--red)">
+  <span class="s-title">Proofread Swap</span>
+  <span class="s-badge gold-badge">4 min</span>
+</div>
+<div class="s-body">
+  ${[
+    {n:"1",t:"Swap books with your partner.",c:"#2563EB"},
+    {n:"2",t:"Underline every focus word you find.",c:"#1D7874"},
+    {n:"3",t:"Circle any focus words that look misspelled.",c:"#C0392B"},
+    {n:"4",t:"Discuss together — agree on the correct spelling.",c:"#7c3aed"},
+  ].map(({n,t,c})=>`
+    <div style="display:flex;align-items:center;gap:14px;background:white;border:2px solid ${c}22;border-radius:10px;padding:14px 18px;margin-bottom:10px">
+      <div style="width:36px;height:36px;border-radius:50%;background:${c};color:white;font-size:18px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">${n}</div>
+      <div style="font-size:16px;font-weight:600;color:${c}">${t}</div>
+    </div>`).join("")}
+  <div style="padding:10px 14px;background:var(--acc-light);border-radius:8px;font-size:11px;color:var(--acc);font-weight:600;margin-top:6px">
+    Focus words: ${WORDS.join(" · ")}
+  </div>
+</div>`);
+
+// ─── QUIZ (teacher mode) ──────────────────────────────────────────────────────
+let quizCurrent = 0;
+S("Weekly Dictation Quiz","quiz","S3",`
+<div class="s-bar" style="background:var(--red)">
+  <span class="s-title">🎯 Weekly Dictation Quiz</span>
+  <span class="s-badge gold-badge">10 min</span>
+</div>
+<div class="s-body">
+  <!-- Teacher view -->
+  <div class="quiz-teacher-only">
+    <div class="quiz-teacher-label">👁 Teacher View — read aloud twice at natural pace</div>
+    <div style="font-size:11px;color:#7c3aed;margin-bottom:10px;font-style:italic">Students write target word only, numbered 1–10. Allow 10 sec between sentences.</div>
+    ${QUIZ_DATA.map(([word,sent],i)=>`
+      <div class="quiz-item">
+        <div class="quiz-qnum">${i+1}.</div>
+        <div class="quiz-word-tag">[${word}]</div>
+        <div class="quiz-sentence">${sent}</div>
+      </div>`).join("")}
+  </div>
+  <!-- Student/display view -->
+  <div class="quiz-student-view" id="quiz-view">
+    <div style="font-size:12px;color:#94a3b8;margin-bottom:10px;font-style:italic">Click Next to step through questions one at a time.</div>
+    <div class="quiz-q-display" id="quiz-display">
+      <div class="quiz-q-num" id="quiz-qnum">Question 1 of ${QUIZ_DATA.length}</div>
+      <div class="quiz-q-text" id="quiz-qtext">Ready? Click Next to begin the quiz.</div>
+      <div class="quiz-q-word" id="quiz-qword" style="display:none"></div>
+    </div>
+    <div class="quiz-nav-row">
+      <button class="quiz-nav-btn quiz-prev-btn" onclick="quizPrev()">◀ Previous</button>
+      <button class="quiz-nav-btn quiz-next-btn" onclick="quizNext()">Next ▶</button>
+    </div>
+    <div class="quiz-answer-reveal" id="quiz-answers">
+      <div class="h2" style="color:var(--teal);margin-bottom:8px">✅ Answers — reveal after quiz</div>
+      <button onclick="toggleQuizAnswers()" style="margin-bottom:8px;padding:7px 16px;border-radius:6px;border:none;cursor:pointer;background:var(--teal);color:white;font-weight:700;font-size:12px">Show / Hide Answers</button>
+      <div id="quiz-answer-chips" style="display:none">
+        <div class="quiz-answer-grid">
+          ${QUIZ_DATA.map(([word],i)=>`<div class="quiz-answer-chip">${i+1}. ${word}</div>`).join("")}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>`,true);
+
+// ─── WORD STUDY ───────────────────────────────────────────────────────────────
+S("Word Study","ws","",`
+<div class="s-bar" style="background:#7c3aed">
+  <span class="s-title">📖 Word Study — choose your word</span>
+  <span class="s-badge gold-badge">Extension</span>
+</div>
+<div class="s-body" style="padding:16px">
+  <div class="ws-word-prompt" style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+    <span style="font-size:13px;font-weight:600;color:var(--grey)">Choose your word:</span>
+    <select class="ws-word-select" onchange="updateWSWord(this.value)">
+      ${WORDS.map(w=>`<option value="${w}">${w}</option>`).join("")}
+    </select>
+  </div>
+  <div class="ws-grid">
+    <div class="ws-cell">
+      <div class="ws-cell-title">Dictionary Meaning</div>
+      <div class="ws-cell-body" style="font-style:italic;color:#94a3b8">Look up the exact definition.</div>
+      <a class="ws-cell-link" id="ws-dict-link" href="#" target="_blank">oxfordlearnersdictionaries.com</a>
+    </div>
+    <div class="ws-centre">
+      <div style="font-size:11px;font-weight:700;color:#94a3b8;letter-spacing:.06em;text-transform:uppercase">Your Word</div>
+      <div class="ws-centre-word" id="ws-centre-word">transformation</div>
+      <div style="font-size:10px;color:#94a3b8;margin-top:4px">Complete all 6 sections in your vocab notebook</div>
+    </div>
+    <div class="ws-cell">
+      <div class="ws-cell-title">Syllables / Recognisable Chunks</div>
+      <div class="ws-cell-body">Break the word into syllables and chunks that help you spell it.<br><em id="ws-syl" style="color:var(--teal)"></em></div>
+      <a class="ws-cell-link" href="https://www.howmanysyllables.com" target="_blank">howmanysyllables.com</a>
+    </div>
+    <div class="ws-cell">
+      <div class="ws-cell-title">Etymology</div>
+      <div class="ws-cell-body">Where does the word come from? What's the root?</div>
+      <a class="ws-cell-link" id="ws-etym-link" href="#" target="_blank">etymonline.com</a>
+    </div>
+    <div class="ws-cell">
+      <div class="ws-cell-title">How Do You Explain It?</div>
+      <div class="ws-cell-body" style="font-style:italic;color:#94a3b8">Write the meaning in your own words — as if explaining to a Year 3 student.</div>
+    </div>
+    <div class="ws-cell">
+      <div class="ws-cell-title">Similar Spelling Patterns</div>
+      <div class="ws-cell-body">Are there other words that use the same spelling patterns or roots?</div>
+    </div>
+    <div class="ws-cell" style="grid-column:2">
+      <div class="ws-cell-title">Other Uses of Base Word</div>
+      <div class="ws-cell-body">Can the base be used in other words?<br><em id="ws-family" style="color:var(--teal)"></em></div>
+    </div>
+  </div>
+</div>`);
+
+// ── SLIDE META ─────────────────────────────────────────────────────────────────
+const SLIDE_META = [
+  {title:"Week 11 Overview",              tag:"",    session:""},
+  {title:"Session 1: LI & SC",           tag:"s1",  session:"S1"},
+  {title:"Hook: Tessellation Image",      tag:"s1",  session:"S1"},
+  {title:"Root Investigation",           tag:"s1",  session:"S1"},
+  ...WORDS.flatMap((w,i)=>[
+    {title:`Word ${i+1} — Spell It (${w})`, tag:"s1", session:"S1"},
+    {title:`Word ${i+1} — Reveal (${w})`,   tag:"s1", session:"S1"},
+  ]),
+  {title:"Definition Match",             tag:"s1",  session:"S1"},
+  {title:"Exit Ticket S1",               tag:"s1",  session:"S1"},
+  {title:"Session 2: LI & SC",           tag:"s2",  session:"S2"},
+  {title:"Hook: Syllable Challenge",      tag:"s2",  session:"S2"},
+  {title:"Syllable Tap",                  tag:"s2",  session:"S2"},
+  {title:"Morpheme Peel",                 tag:"s2",  session:"S2"},
+  {title:"Broken Word Repair",            tag:"s2",  session:"S2"},
+  {title:"Look Cover Write Check",        tag:"s2",  session:"S2"},
+  {title:"Session 3: LI & SC",           tag:"s3",  session:"S3"},
+  {title:"Hook: Memory Challenge",        tag:"s3",  session:"S3"},
+  {title:"Explanation Paragraph",         tag:"s3",  session:"S3"},
+  {title:"Proofread Swap",               tag:"s3",  session:"S3"},
+  {title:"Dictation Quiz",               tag:"quiz",session:"S3"},
+  {title:"Word Study",                   tag:"ws",  session:""},
+];
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+let current = 0;
+let teacherMode = false;
+
+function buildSidebar(){
+  const list = document.getElementById("slide-list");
+  let lastSession = "";
+  SLIDES.forEach((slide, i) => {
+    const meta = SLIDE_META[i] || {title:slide.title, tag:slide.tag||"", session:slide.session||""};
+    if(meta.session && meta.session !== lastSession){
+      lastSession = meta.session;
+      const div = document.createElement("div");
+      div.className = "session-divider";
+      div.textContent = meta.session === "S1" ? "Session 1" : meta.session === "S2" ? "Session 2" : meta.session === "S3" ? "Session 3" : meta.session;
+      list.appendChild(div);
+    }
+    const item = document.createElement("div");
+    item.className = "slide-thumb" + (i===0?" active":"");
+    item.id = `thumb-${i}`;
+    item.onclick = () => goTo(i);
+    const tagMap = {s1:"tag-s1",s2:"tag-s2",s3:"tag-s3",quiz:"tag-quiz",ws:"tag-ws","":" "};
+    const tagLabelMap = {s1:"S1",s2:"S2",s3:"S3",quiz:"Quiz",ws:"WS","":" "};
+    const tag = slide.tag||"";
+    item.innerHTML = `
+      <span class="num">${i+1}</span>
+      <span class="label">${slide.title}</span>
+      ${tag ? `<span class="tag ${tagMap[tag]||""}">${tagLabelMap[tag]||tag}</span>` : ""}
+    `;
+    list.appendChild(item);
+  });
+}
+
+function buildSlides(){
+  const vp = document.getElementById("slide-viewport");
+  SLIDES.forEach((slide, i) => {
+    const div = document.createElement("div");
+    div.className = "slide" + (i===0?" active":"");
+    div.id = `slide-${i}`;
+    div.innerHTML = slide.html;
+    vp.appendChild(div);
+  });
+}
+
+function goTo(n){
+  if(n<0||n>=SLIDES.length) return;
+  document.getElementById(`slide-${current}`)?.classList.remove("active");
+  document.getElementById(`thumb-${current}`)?.classList.remove("active");
+  current = n;
+  const el = document.getElementById(`slide-${current}`);
+  el.classList.add("active");
+  document.getElementById(`thumb-${current}`).classList.add("active");
+  document.getElementById(`thumb-${current}`).scrollIntoView({block:"nearest",behavior:"smooth"});
+  document.getElementById("slide-counter").textContent = `${current+1} / ${SLIDES.length}`;
+  document.getElementById("slide-title-bar").textContent = SLIDES[current].title;
+  document.getElementById("nav-prev").disabled = current === 0;
+  document.getElementById("nav-next").disabled = current === SLIDES.length-1;
+  document.getElementById("mob-prev").disabled = current === 0;
+  document.getElementById("mob-next").disabled = current === SLIDES.length-1;
+}
+function nextSlide(){goTo(current+1);}
+function prevSlide(){goTo(current-1);}
+
+document.addEventListener("keydown",e=>{
+  if(e.key==="ArrowRight"||e.key==="ArrowDown") nextSlide();
+  else if(e.key==="ArrowLeft"||e.key==="ArrowUp") prevSlide();
+});
+
+// Teacher mode
+function toggleTeacher(){
+  teacherMode = !teacherMode;
+  document.body.classList.toggle("teacher-mode", teacherMode);
+  const btn = document.getElementById("teacher-toggle");
+  btn.classList.toggle("active", teacherMode);
+  btn.textContent = teacherMode ? "🔓 Teacher Mode: On" : "🔒 Teacher Mode: Off";
+}
+
+// Sidebar
+let sidebarOpen = true;
+function toggleSidebar(){
+  sidebarOpen = !sidebarOpen;
+  document.getElementById("sidebar").classList.toggle("collapsed", !sidebarOpen);
+}
+
+// ── WORD REVEAL ───────────────────────────────────────────────────────────────
+function checkWordInput(idx, correct){
+  const inp = document.getElementById(`wi-${idx}`);
+  if(!inp) return;
+  const val = inp.value.trim().toLowerCase();
+  inp.classList.remove("correct","incorrect");
+  if(val === correct) inp.classList.add("correct");
+  else if(val.length >= correct.length) inp.classList.add("incorrect");
+}
+
+// ── DEFINITION MATCH ──────────────────────────────────────────────────────────
+let dragging = null;
+let touchDragging = null;
+
+function dragStart(e){
+  dragging = e.target.closest(".match-word");
+  if(dragging) dragging.classList.add("dragging");
+}
+function dragOver(e){
+  e.preventDefault();
+  e.currentTarget.classList.add("drag-over");
+}
+function dropWord(e){
+  e.preventDefault();
+  const slot = e.currentTarget;
+  slot.classList.remove("drag-over");
+  if(!dragging) return;
+  const word = dragging.dataset.word;
+  const placed = document.getElementById(`placed-${slot.dataset.slot}`);
+  placed.textContent = word;
+  slot.classList.add("matched");
+  dragging.style.opacity = ".4";
+  dragging.classList.remove("dragging");
+  dragging = null;
+}
+// Touch support
+let touchWord = null;
+let touchSlot = null;
+function touchStart(e, el){
+  touchWord = el;
+  touchWord.classList.add("dragging");
+}
+document.addEventListener("touchmove", e=>{
+  if(!touchWord) return;
+  const touch = e.touches[0];
+  const el = document.elementFromPoint(touch.clientX, touch.clientY);
+  if(el){
+    const slot = el.closest(".match-meaning");
+    if(touchSlot && touchSlot !== slot) touchSlot.classList.remove("drag-over");
+    if(slot){ touchSlot = slot; slot.classList.add("drag-over"); }
+  }
+},{passive:true});
+function touchEnd(e, slot){
+  if(!touchWord) return;
+  slot.classList.remove("drag-over");
+  const word = touchWord.dataset.word;
+  const placed = document.getElementById(`placed-${slot.dataset.slot}`);
+  placed.textContent = word;
+  slot.classList.add("matched");
+  touchWord.style.opacity=".4";
+  touchWord.classList.remove("dragging");
+  touchWord = null; touchSlot = null;
+}
+
+function checkMatch(){
+  document.querySelectorAll(".match-meaning").forEach(slot=>{
+    const placed = document.getElementById(`placed-${slot.dataset.slot}`);
+    if(!placed.textContent) return;
+    const wordIdx = WORDS.indexOf(placed.textContent);
+    const correct = MATCH_ORDER.indexOf(parseInt(slot.dataset.orig)) === parseInt(slot.dataset.slot);
+    // Check if placed word belongs in this slot
+    const origIdx = parseInt(slot.dataset.orig);
+    const correctWord = WORDS[origIdx];
+    if(placed.textContent === correctWord){
+      slot.style.borderColor = "#1A6B3C";
+      slot.style.background = "#f0fdf4";
+    } else if(placed.textContent){
+      slot.style.borderColor = "#C0392B";
+      slot.style.background = "#fef2f2";
+    }
+  });
+}
+
+function resetMatch(){
+  document.querySelectorAll(".match-word").forEach(w=>{ w.style.opacity="1"; });
+  document.querySelectorAll(".match-meaning").forEach(s=>{
+    s.style.borderColor=""; s.style.background=""; s.classList.remove("matched","drag-over");
+  });
+  document.querySelectorAll(".placed-word").forEach(p=>{ p.textContent=""; });
+}
+
+function toggleMatchAnswers(){
+  document.getElementById("match-answers").classList.toggle("show");
+}
+
+// ── SYLLABLE TAP ──────────────────────────────────────────────────────────────
+function tapSyl(i){
+  document.getElementById(`syl-${i}`)?.classList.toggle("tapped");
+}
+
+// ── BROKEN WORD ───────────────────────────────────────────────────────────────
+function checkBroken(i){
+  const inp = document.getElementById(`br-inp-${i}`);
+  if(!inp) return;
+  const correct = inp.dataset.answer;
+  inp.classList.remove("correct","incorrect");
+  if(inp.value.trim().toLowerCase() === correct.toLowerCase()) inp.classList.add("correct");
+  else if(inp.value.length >= correct.length) inp.classList.add("incorrect");
+}
+function revealAllBroken(){
+  BROKEN.forEach((_,i)=>{
+    const ans = document.getElementById(`br-ans-${i}`);
+    if(ans) ans.style.display = "block";
+  });
+}
+function resetBroken(){
+  BROKEN.forEach((_,i)=>{
+    const inp = document.getElementById(`br-inp-${i}`);
+    if(inp){ inp.value=""; inp.classList.remove("correct","incorrect"); }
+    const ans = document.getElementById(`br-ans-${i}`);
+    if(ans) ans.style.display = "none";
+  });
+}
+
+// ── LCWC ──────────────────────────────────────────────────────────────────────
+function toggleLCWC(i){
+  const label = document.getElementById(`lcwc-${i}`);
+  const btn = document.getElementById(`lcwc-btn-${i}`);
+  if(!label) return;
+  const hidden = label.classList.toggle("hidden");
+  btn.textContent = hidden ? "Show word" : "Hide word";
+}
+
+// ── QUIZ ──────────────────────────────────────────────────────────────────────
+let quizIdx = -1;
+function quizNext(){
+  quizIdx = Math.min(quizIdx+1, QUIZ_DATA.length-1);
+  updateQuizDisplay();
+  if(quizIdx === QUIZ_DATA.length-1){
+    document.getElementById("quiz-answers").classList.add("show");
+  }
+}
+function quizPrev(){
+  quizIdx = Math.max(quizIdx-1, -1);
+  updateQuizDisplay();
+}
+function updateQuizDisplay(){
+  const qnum = document.getElementById("quiz-qnum");
+  const qtext = document.getElementById("quiz-qtext");
+  const qword = document.getElementById("quiz-qword");
+  if(!qnum) return;
+  if(quizIdx < 0){
+    qnum.textContent = `Question — of ${QUIZ_DATA.length}`;
+    qtext.textContent = "Ready? Click Next to begin.";
+    qword.style.display="none";
+  } else {
+    const [word, sent] = QUIZ_DATA[quizIdx];
+    qnum.textContent = `Question ${quizIdx+1} of ${QUIZ_DATA.length}`;
+    qtext.textContent = sent;
+    qword.style.display="block";
+    qword.textContent = teacherMode ? `[${word}]` : "✍️ Write the target word";
+  }
+}
+function toggleQuizAnswers(){
+  const chips = document.getElementById("quiz-answer-chips");
+  if(chips) chips.style.display = chips.style.display==="none" ? "flex" : "none";
+}
+
+// ── WORD STUDY ────────────────────────────────────────────────────────────────
+const WS_SYLLABLES = Object.fromEntries(SYLLABLES.map(([w,s])=>[w,s]));
+const WS_FAMILIES = {
+  transformation:"transform · transformed · transforming · transformer",
+  tessellation:"tessellate · tessellated · tessellating",
+  translation:"translate · translated · translating · translator",
+  reflection:"reflect · reflected · reflecting · reflective",
+  rotation:"rotate · rotated · rotating · rotational",
+  symmetry:"symmetric · symmetrical · symmetrically · asymmetry",
+  congruent:"congruence · incongruent",
+  perpendicular:"perpendicularly",
+  polygon:"polygonal · polyhedron · polygons",
+  geometric:"geometry · geometrically · geometer",
+};
+function updateWSWord(word){
+  const centre = document.getElementById("ws-centre-word");
+  const syl = document.getElementById("ws-syl");
+  const family = document.getElementById("ws-family");
+  const dictLink = document.getElementById("ws-dict-link");
+  const etymLink = document.getElementById("ws-etym-link");
+  if(centre) centre.textContent = word;
+  if(syl) syl.textContent = WS_SYLLABLES[word] || "";
+  if(family) family.textContent = WS_FAMILIES[word] || "";
+  if(dictLink) dictLink.href = `https://www.oxfordlearnersdictionaries.com/definition/english/${word}`;
+  if(etymLink) etymLink.href = `https://www.etymonline.com/word/${word}`;
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+buildSidebar();
+buildSlides();
+goTo(0);
+updateWSWord("transformation");
+</script>
+</body>
+</html>
